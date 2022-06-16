@@ -7,6 +7,6 @@
       steampunk.aws.ec2_instance:
         name: "{{ i_name }}"
         type: "{{ i_type }}"
-        ami: ami-0e8286b71b81c3cc1
-        key_pair: demo_key
+        ami: ami-0cff7528ff583bf9a
+        key_pair: newkey_NV
         subnet: "{{ i_subnet }}"
