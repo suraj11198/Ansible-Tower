@@ -2,30 +2,22 @@
 
  - hosts: all
   gather_facts: false
+  
+  - name: Ansible test
+hosts: localhost
+tasks:
+- name: launching AWS instance using Ansible
+ec2:
+key_name: new_Frank
+instance_type: t2.micro
+image: ami-0a1ee2fb28fe05df3
+#region: us-east-2
+wait: yes
+group: Ansible
+count: 1
+vpc_subnet_id: default
+assign_public_ip: yes
 
-  tasks:
-    - name: Create a VM
-      steampunk.aws.ec2_instance:
-        name: "{{ i_name }}"
-        type: "{{ i_type }}"
-        ami: ami-0a1ee2fb28fe05df3
-        key_pair: new_Frank
-        subnet: "{{ i_subnet }}"
-        security_group: sg-0d59dc72c46742624p
-                   rules:
-            - proto: tcp
-              from_port: 22
-              to_port: 22
-              cidr_ip: 0.0.0.0/0
-            - proto: tcp
-              from_port: 8080
-              to_port: 8080
-              cidr_ip: 0.0.0.0/0
-            - proto: tcp
-              from_port: 443
-              to_port: 443
-              cidr_ip: 0.0.0.0/0
-          rules_egress:
-            - proto: all
-              cidr_ip: 0.0.0.0/0
-        register: basic_firewall
+
+
+ 
