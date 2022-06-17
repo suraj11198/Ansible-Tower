@@ -1,28 +1,18 @@
 ---
-  - name: Provision an EC2 Instance. Detailed steps by Crunchify.
-    hosts: local
-    connection: local
-    gather_facts: False
-    tags: provisioning
-    # required parameters
-    vars:
-      instance_type: "{{ i_type }}"
-      security_group: sg-0d59dc72c46742624p
-      image: ami-0a1ee2fb28fe05df3
-      keypair: new_Frank
-      region: eu-central-1 # Change the Region
-      count: 1
- 
-    # Task that will be used to Launch/Create an EC2 Instance
-    tasks:
- 
-      - name: Create a security group
-        local_action: 
-          module: ec2_group
-          name: "{{ security_group }}"
-          description: Security Group for Crunchify's EC2 Servers
-          region: "{{ region }}"
-          rules:
+
+ - hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: Create a VM
+      steampunk.aws.ec2_instance:
+        name: "{{ i_name }}"
+        type: "{{ i_type }}"
+        ami: ami-0a1ee2fb28fe05df3
+        key_pair: new_Frank
+        subnet: "{{ i_subnet }}"
+        security_group: sg-0d59dc72c46742624p
+                   rules:
             - proto: tcp
               from_port: 22
               to_port: 22
@@ -39,56 +29,3 @@
             - proto: all
               cidr_ip: 0.0.0.0/0
         register: basic_firewall
-        
-      - name: Launching Crunchify's the new EC2 Instance
-        local_action: ec2 
-                      group={{ security_group }} 
-                      instance_type={{ instance_type}} 
-                      image={{ image }} 
-                      wait=true
-                      wait_timeout=500 
-                      region={{ region }} 
-                      keypair={{ keypair }}
-                      count={{count}}
-        register: ec2_crunchify
- 
-      - name: Add the newly created EC2 instance(s) to the local host group
-        local_action: lineinfile 
-                      path=crunchify.txt
-                      regexp={{ item.public_ip }} 
-                      insertafter='\[crunchify\]' line={{ item.public_ip }}
-        with_items: '{{ec2_crunchify.instances}}'
- 
-      - name: Add new instance to Crunchify's host group
-        add_host:
-          hostname: "{{ item.public_ip }}"
-          groupname: launched
-        with_items: "{{ ec2_crunchify.instances }}"
- 
-      - name: Let's wait for SSH to come up. Usually that takes ~10 seconds
-        local_action: wait_for 
-                      host={{ item.public_ip }} 
-                      port=22 
-                      state=started
-        with_items: '{{ ec2_crunchify.instances }}'
- 
-      - name: Add tag to Instance(s)
-        local_action: ec2_tag resource={{ item.id }} region={{ region }} state=present
-        with_items: '{{ ec2_crunchify.instances }}'
-        args:
-          tags:
-            Name: crunchify
-            
-            
-            
-# - hosts: all
-#  gather_facts: false
-
-#  tasks:
-#    - name: Create a VM
-#      steampunk.aws.ec2_instance:
-#        name: "{{ i_name }}"
-#        type: "{{ i_type }}"
-#        ami: ami-0a1ee2fb28fe05df3
-#        key_pair: new_Frank
-#        subnet: "{{ i_subnet }}"
